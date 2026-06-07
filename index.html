@@ -172,14 +172,7 @@
                 return true;
             } catch (e) { return false; }
         }
-        loadFromHash().then(() => {
-            ingredients = JSON.parse(localStorage.getItem('ingredients') || '[]');
-            sandwiches = JSON.parse(localStorage.getItem('sandwiches') || '[]');
-            orderLines = JSON.parse(localStorage.getItem('orderLines') || '[]');
-            renderIngredients();
-            renderSandwiches();
-            renderOrder();
-        });
+        loadFromHash().then(init);
 
         async function copyShareLink() {
             const data = { ingredients, sandwiches, orderLines };
@@ -192,8 +185,8 @@
             setTimeout(() => notice.innerHTML = '', 3000);
         }
 
-        let ingredients = JSON.parse(localStorage.getItem('ingredients') || '[]');
-        let sandwiches = JSON.parse(localStorage.getItem('sandwiches') || '[]');
+        let ingredients = [];
+        let sandwiches = [];
         let editingSandwichIndex = null;
 
         function save() {
@@ -343,7 +336,7 @@
             }).join('');
         }
 
-        let orderLines = JSON.parse(localStorage.getItem('orderLines') || '[]');
+        let orderLines = [];
 
         function saveOrder() {
             const lines = document.querySelectorAll('#order-lines .order-line');
@@ -435,9 +428,15 @@
                 }).join('');
         }
 
-        renderIngredients();
-        renderSandwiches();
-        renderOrder();
+        function init() {
+            ingredients = JSON.parse(localStorage.getItem('ingredients') || '[]');
+            sandwiches = JSON.parse(localStorage.getItem('sandwiches') || '[]');
+            orderLines = JSON.parse(localStorage.getItem('orderLines') || '[]');
+            renderIngredients();
+            renderSandwiches();
+            renderOrder();
+        }
+        init();
     </script>
 </body>
 </html>
