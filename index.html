@@ -137,11 +137,33 @@
     </div>
 
     <script>
-        function loadFromHash() {
+        async function compress(str) {
+            const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+            const buf = await new Response(stream).arrayBuffer();
+            let binary = '';
+            const bytes = new Uint8Array(buf);
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        async function decompress(encoded) {
+            const binary = atob(encoded.replace(/-/g, '+').replace(/_/g, '/'));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+            return await new Response(stream).text();
+        }
+
+        async function loadFromHash() {
             const hash = window.location.hash.slice(1);
             if (!hash) return false;
             try {
-                const json = decodeURIComponent(atob(hash));
+                let json;
+                if (hash.startsWith('c_')) {
+                    json = await decompress(hash.slice(2));
+                } else {
+                    json = decodeURIComponent(atob(hash));
+                }
                 const data = JSON.parse(json);
                 if (data.ingredients) localStorage.setItem('ingredients', JSON.stringify(data.ingredients));
                 if (data.sandwiches) localStorage.setItem('sandwiches', JSON.stringify(data.sandwiches));
@@ -152,15 +174,15 @@
         }
         loadFromHash();
 
-        function copyShareLink() {
+        async function copyShareLink() {
             const data = { ingredients, sandwiches, orderLines };
-            const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+            const json = JSON.stringify(data);
+            const encoded = 'c_' + await compress(json);
             const url = window.location.origin + window.location.pathname + '#' + encoded;
-            navigator.clipboard.writeText(url).then(() => {
-                const notice = document.getElementById('share-notice');
-                notice.innerHTML = '<span class="share-notice">Link copied to clipboard!</span>';
-                setTimeout(() => notice.innerHTML = '', 3000);
-            });
+            await navigator.clipboard.writeText(url);
+            const notice = document.getElementById('share-notice');
+            notice.innerHTML = '<span class="share-notice">Link copied to clipboard!</span>';
+            setTimeout(() => notice.innerHTML = '', 3000);
         }
 
         let ingredients = JSON.parse(localStorage.getItem('ingredients') || '[]');
