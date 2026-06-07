@@ -325,13 +325,15 @@
                 Object.values(totals).map(t => {
                     const ingDef = ingredients.find(i => i.name === t.name);
                     const perContainer = ingDef ? ingDef.perContainer : 1;
-                    const containers = Math.ceil(t.total / perContainer);
+                    const exact = t.total / perContainer;
+                    const rounded = Math.ceil(exact);
+                    const display = Number.isInteger(exact) ? exact.toString() : exact.toFixed(2).replace(/0+$/, '');
                     return `<div class="result-card">
                         <div>
                             <div class="ingredient-name">${t.name}</div>
                             <div class="details">${t.total} ${t.unit} needed &middot; ${perContainer} ${t.unit} per container</div>
                         </div>
-                        <div class="containers">${containers}<small>container${containers !== 1 ? 's' : ''}</small></div>
+                        <div class="containers">${display}<small>container${exact !== 1 ? 's' : ''} (prep ${rounded})</small></div>
                     </div>`;
                 }).join('');
         }
