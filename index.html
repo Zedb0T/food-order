@@ -172,7 +172,14 @@
                 return true;
             } catch (e) { return false; }
         }
-        loadFromHash();
+        loadFromHash().then(() => {
+            ingredients = JSON.parse(localStorage.getItem('ingredients') || '[]');
+            sandwiches = JSON.parse(localStorage.getItem('sandwiches') || '[]');
+            orderLines = JSON.parse(localStorage.getItem('orderLines') || '[]');
+            renderIngredients();
+            renderSandwiches();
+            renderOrder();
+        });
 
         async function copyShareLink() {
             const data = { ingredients, sandwiches, orderLines };
