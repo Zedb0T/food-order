@@ -46,10 +46,18 @@
         .order-line input { flex: 1; max-width: 100px; }
         .order-line button { flex-shrink: 0; }
         #order-lines { margin-bottom: 16px; }
+        .share-bar { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 20px; }
+        .share-bar button { padding: 8px 16px; }
+        .share-notice { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 8px 14px; border-radius: 4px; font-size: 13px; animation: fadeout 3s forwards; }
+        @keyframes fadeout { 0%,70% { opacity: 1; } 100% { opacity: 0; } }
     </style>
 </head>
 <body>
     <h1>Sandwich Order Calculator</h1>
+    <div class="share-bar">
+        <button class="btn-primary" onclick="copyShareLink()">Copy Share Link</button>
+        <span id="share-notice"></span>
+    </div>
 
     <div class="tabs">
         <button class="tab active" onclick="switchTab('ingredients')">Ingredients</button>
@@ -129,6 +137,32 @@
     </div>
 
     <script>
+        function loadFromHash() {
+            const hash = window.location.hash.slice(1);
+            if (!hash) return false;
+            try {
+                const json = decodeURIComponent(atob(hash));
+                const data = JSON.parse(json);
+                if (data.ingredients) localStorage.setItem('ingredients', JSON.stringify(data.ingredients));
+                if (data.sandwiches) localStorage.setItem('sandwiches', JSON.stringify(data.sandwiches));
+                if (data.orderLines) localStorage.setItem('orderLines', JSON.stringify(data.orderLines));
+                window.history.replaceState(null, '', window.location.pathname);
+                return true;
+            } catch (e) { return false; }
+        }
+        loadFromHash();
+
+        function copyShareLink() {
+            const data = { ingredients, sandwiches, orderLines };
+            const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+            const url = window.location.origin + window.location.pathname + '#' + encoded;
+            navigator.clipboard.writeText(url).then(() => {
+                const notice = document.getElementById('share-notice');
+                notice.innerHTML = '<span class="share-notice">Link copied to clipboard!</span>';
+                setTimeout(() => notice.innerHTML = '', 3000);
+            });
+        }
+
         let ingredients = JSON.parse(localStorage.getItem('ingredients') || '[]');
         let sandwiches = JSON.parse(localStorage.getItem('sandwiches') || '[]');
         let editingSandwichIndex = null;
